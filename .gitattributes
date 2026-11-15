@@ -1,0 +1,6 @@
+# Keep the Gradle wrapper byte-for-byte identical to Gradle's official files, whatever the
+# local core.autocrlf says, so it can be checked against the published checksums.
+/gradlew      text eol=lf
+*.bat         -text
+*.jar         binary
+*.gif         binary
