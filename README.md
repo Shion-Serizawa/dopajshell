@@ -104,3 +104,11 @@ Java の結果と演出の対応:
 ```powershell
 .\gradlew.bat test     # 全シーンを複数の幅・色数で描画するテストと、全サウンドの合成テスト
 ```
+
+## ライセンス
+
+[MIT License](LICENSE)
+
+## Special Thanks
+
+- [ko1 (Koichi Sasada)](https://github.com/ko1) さん — 元になった [dopairb](https://github.com/ko1/dopairb) の作者です。ゲームの仕組み、演出、サウンドの設計はすべて dopairb に由来します。素敵なツールを MIT ライセンスで公開してくださったことに感謝します。
