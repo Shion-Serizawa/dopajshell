@@ -10,7 +10,7 @@ repositories {
     mavenCentral()
 }
 
-def jlineVersion = '3.30.17'
+def jlineVersion = '4.6.0'
 
 dependencies {
     implementation "org.jline:jline-terminal:${jlineVersion}"
