@@ -47,7 +47,8 @@ tasks.register('fatJar', Jar) {
     archiveFileName = 'dopajshell-all.jar'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
-        attributes 'Main-Class': 'dopajshell.Main', 'Enable-Native-Access': 'ALL-UNNAMED'
+        attributes 'Main-Class': 'dopajshell.Main', 'Enable-Native-Access': 'ALL-UNNAMED',
+                'Implementation-Version': project.version
     }
     from sourceSets.main.output
     dependsOn configurations.runtimeClasspath
@@ -56,6 +57,12 @@ tasks.register('fatJar', Jar) {
     }
 }
 assemble.dependsOn fatJar
+
+jar {
+    manifest {
+        attributes 'Implementation-Version': project.version
+    }
+}
 
 test {
     useJUnitPlatform()

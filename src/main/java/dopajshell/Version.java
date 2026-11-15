@@ -3,5 +3,11 @@ package dopajshell;
 public final class Version {
     private Version() {}
 
-    public static final String VERSION = "0.1.0";
+    /** From the jar manifest (set from `version` in build.gradle); "dev" when run from class files. */
+    public static final String VERSION = resolve();
+
+    private static String resolve() {
+        String v = Version.class.getPackage().getImplementationVersion();
+        return v != null ? v : "dev";
+    }
 }
