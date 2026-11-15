@@ -195,7 +195,9 @@ JShell をどう組み立て直しているかは [docs/jshell-customization.md]
 
 ### リリース
 
-`build.gradle` の `version` を上げてコミットし、同じ番号のタグ（例: `v0.1.0`）を push します。GitHub Actions がテストを実行し、`dopajshell.jar` を添付した Release を作ります。そのあと、Scoop（`bucket/`）と Homebrew（`Formula/`）のマニフェストを新しいバージョンとハッシュに更新して `main` にコミットします。JBang（`jbang-catalog.json`）は常に最新の Release を指すので、更新は要りません。
+`main` への変更は PR 経由で入れます（3 つの OS の CI が通ることが必須で、直接 push と force push はできません）。
+
+`build.gradle` の `version` を上げてコミットし、同じ番号のタグ（例: `v0.1.0`）を push します。GitHub Actions がテストを実行し、`dopajshell.jar` を添付した Release を作ります。そのあと、Scoop（`bucket/`）と Homebrew（`Formula/`）のマニフェストを新しいバージョンとハッシュに更新して `main` にコミットします。このコミットだけは、`release` Environment（`v*` タグからしか使えない）に登録したデプロイキー `MANIFEST_DEPLOY_KEY` で、PR を通さずに push します。JBang（`jbang-catalog.json`）は常に最新の Release を指すので、更新は要りません。
 
 ### 依存関係の更新
 
