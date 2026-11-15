@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'dopajshell'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+def jlineVersion = '3.30.17'
+
+dependencies {
+    implementation "org.jline:jline-terminal:${jlineVersion}"
+    implementation "org.jline:jline-reader:${jlineVersion}"
+    // Native terminal access on Windows / macOS / Linux: FFM (JDK 22+) first, JNI as the fallback.
+    runtimeOnly "org.jline:jline-terminal-ffm:${jlineVersion}"
+    runtimeOnly "org.jline:jline-terminal-jni:${jlineVersion}"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:all,-serial,-this-escape']
+}
+
+application {
+    mainClass = 'dopajshell.Main'
+    applicationName = 'dopajshell'
+    applicationDefaultJvmArgs = ['--enable-native-access=ALL-UNNAMED', '-Dstdout.encoding=UTF-8', '-Dstderr.encoding=UTF-8']
+}
+
+// One self-contained jar: java -jar build/libs/dopajshell-all.jar
+tasks.register('fatJar', Jar) {
+    archiveClassifier = 'all'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes 'Main-Class': 'dopajshell.Main', 'Enable-Native-Access': 'ALL-UNNAMED'
+    }
+    from sourceSets.main.output
+    dependsOn configurations.runtimeClasspath
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } } {
+        exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class'
+    }
+}
+assemble.dependsOn fatJar
+
+test {
+    useJUnitPlatform()
+}

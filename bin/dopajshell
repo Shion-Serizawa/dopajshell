@@ -1,0 +1,5 @@
+#!/bin/sh
+# dopajshell launcher (macOS / Linux / Git Bash). Uses JAVA_HOME (set by mise in this repo) or java on PATH.
+DIR=$(cd "$(dirname "$0")/.." && pwd)
+JAVA=${JAVA_HOME:+$JAVA_HOME/bin/}java
+exec "$JAVA" --enable-native-access=ALL-UNNAMED -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -jar "$DIR/build/libs/dopajshell-0.1.0-all.jar" "$@"

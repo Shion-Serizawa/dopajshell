@@ -1,0 +1,3 @@
+[tools]
+# JDK used to build and run dopajshell (mise sets JAVA_HOME for this directory)
+java = "corretto-25"
