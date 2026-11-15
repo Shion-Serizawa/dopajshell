@@ -3,6 +3,10 @@
 キー入力、評価、結果、例外のすべてに派手なターミナル演出がつく JShell です。
 [dopairb](https://github.com/ko1/dopairb)（IRB 版）を Java に移植したもので、JDK 標準の `jdk.jshell` 公開 API と JLine 3 の上に作っています。
 
+<!-- デモ GIF（docs/demo.tape で録画して docs/demo.gif に置いたらコメントを外す）
+![dopajshell のデモ](docs/demo.gif)
+-->
+
 ```
 dopajshell> IntStream.rangeClosed(1, 100).sum()   COMBO 03  SCORE 1,420  [⣿⣿⣀⣀⣀⣀⣀⣀] x1.5
                     ⠂⠌⠟⠃        <- キーを打つたびに火花・発光・HUD
@@ -10,31 +14,24 @@ dopajshell> IntStream.rangeClosed(1, 100).sum()   COMBO 03  SCORE 1,420  [⣿⣿
 $1 ==> 5050                       <- JShell の通常の出力はそのまま
 ```
 
-## ビルドと起動
+## すぐ試す
 
-JDK は [mise](https://mise.jdx.dev/) で固定しています（`mise.toml`: Corretto 25）。このディレクトリでは mise が使う JDK を切り替えます。
+必要なのは **JDK 21 以上**だけです（JShell を使うので JRE ではなく JDK が必要です）。
 
-### PowerShell
-
-```powershell
-mise install                  # 初回のみ: JDK をインストール
-.\gradlew.bat fatJar          # build\libs\dopajshell-all.jar ができる
-.\bin\dopajshell.cmd          # 起動
-```
-
-mise のシム（`%LOCALAPPDATA%\mise\shims`）が PATH にあれば、`JAVA_HOME` を設定しなくても動きます。
-`mise activate` を使っている場合は、このディレクトリに入ると `JAVA_HOME` も自動で設定されます。
-
-### macOS / Linux / Git Bash
+1. [Releases](https://github.com/Shion-Serizawa/dopajshell/releases/latest) から `dopajshell.jar` をダウンロードします。
+2. ターミナルで起動します。
 
 ```console
-$ mise install
-$ ./gradlew fatJar
-$ bin/dopajshell
+java -jar dopajshell.jar
 ```
 
-mise を使わない場合は JDK 25 を入れて `JAVA_HOME` を設定してください（実行だけなら JDK 21 以上で動きます）。
-Windows Terminal での利用をおすすめします（24 ビットカラー対応）。
+コマンドラインからダウンロードする場合:
+
+```console
+curl -LO https://github.com/Shion-Serizawa/dopajshell/releases/latest/download/dopajshell.jar
+```
+
+Windows では Windows Terminal での利用をおすすめします（24 ビットカラー対応）。
 
 ## 使い方
 
@@ -92,6 +89,36 @@ Java の結果と演出の対応:
 - 演出中にキーを押すと演出はすぐ終わり、そのキーは行エディタに渡ります。
 - パイプやリダイレクトでの実行、`TERM=dumb` では制御シーケンスを一切出さず、jshell 形式の出力だけを出します。
 - 演出の中で起きた例外は REPL に影響しません。`DOPAJSHELL_DEBUG=パス` でログを出せます。`DOPAJSHELL_SEED=n` で運の要素を再現可能に、`DOPAJSHELL_SOUND=off` で音を無効にできます。
+
+## 開発する
+
+JDK は [mise](https://mise.jdx.dev/) で固定しています（`mise.toml`: Corretto 25）。このディレクトリでは mise が使う JDK を切り替えます。
+
+### PowerShell
+
+```powershell
+mise install                  # 初回のみ: JDK をインストール
+.\gradlew.bat fatJar          # build\libs\dopajshell-all.jar ができる
+.\bin\dopajshell.cmd          # 起動
+```
+
+mise のシム（`%LOCALAPPDATA%\mise\shims`）が PATH にあれば、`JAVA_HOME` を設定しなくても動きます。
+`mise activate` を使っている場合は、このディレクトリに入ると `JAVA_HOME` も自動で設定されます。
+
+### macOS / Linux / Git Bash
+
+```console
+$ mise install
+$ ./gradlew fatJar
+$ bin/dopajshell
+```
+
+mise を使わない場合は JDK 25 を入れて `JAVA_HOME` を設定してください（ビルドには JDK 25、実行には JDK 21 以上が必要です）。
+`bin/dopajshell`（`.cmd`）は `build/libs/dopajshell-all.jar` を起動するだけのスクリプトです。
+
+### リリース
+
+`build.gradle` の `version` を上げてコミットし、同じ番号のタグ（例: `v0.1.0`）を push すると、GitHub Actions がテストを実行し、`dopajshell.jar` を添付した Release を作ります。
 
 ## 実装
 
