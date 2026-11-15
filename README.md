@@ -56,6 +56,12 @@ curl -LO https://github.com/Shion-Serizawa/dopajshell/releases/latest/download/d
 java -jar dopajshell.jar
 ```
 
+ダウンロードした jar がこのリポジトリの GitHub Actions でビルドされたものかどうかは、[GitHub CLI](https://cli.github.com/) で確認できます。
+
+```console
+gh attestation verify dopajshell.jar --repo Shion-Serizawa/dopajshell
+```
+
 ## 使い方
 
 ```console
@@ -190,6 +196,17 @@ JShell をどう組み立て直しているかは [docs/jshell-customization.md]
 ### リリース
 
 `build.gradle` の `version` を上げてコミットし、同じ番号のタグ（例: `v0.1.0`）を push します。GitHub Actions がテストを実行し、`dopajshell.jar` を添付した Release を作ります。そのあと、Scoop（`bucket/`）と Homebrew（`Formula/`）のマニフェストを新しいバージョンとハッシュに更新して `main` にコミットします。JBang（`jbang-catalog.json`）は常に最新の Release を指すので、更新は要りません。
+
+### 依存関係の更新
+
+Dependabot が月に 1 回、Gradle の依存関係と GitHub Actions の更新 PR を作ります。公開から 7 日（メジャー更新は 14 日）たっていない版は対象にしません。サプライチェーン攻撃を前提に、マージする前に次を確認します。
+
+- **Gradle Wrapper**: `gradle-wrapper.jar` の SHA-256 が `https://services.gradle.org/distributions/gradle-<版>-wrapper.jar.sha256` と一致するか。`gradle-wrapper.properties` には `distributionSha256Sum`（`gradle-<版>-bin.zip.sha256` の値）を入れる。CI でも Wrapper の検証を行っている
+- **ライブラリ**: Maven Central の `.asc` 署名が、今使っている版と同じ鍵で署名されているか（JLine は Guillaume Nodet、JUnit は Marc Philipp の鍵）。公式リポジトリに同じ版のリリースがあるか
+- **GitHub Actions**: コミット SHA で固定しています。PR の SHA が、公式リポジトリの該当タグのコミットと一致するか
+- **メジャー更新**: CI は描画テストと非対話での起動しか確認しないので、JLine のように入力処理に関わるものは、実際に起動して手で確かめる
+
+リリースのビルドでは Gradle のキャッシュを使わず、`dopajshell.jar` には来歴証明（build provenance attestation）を付けています。`v*` タグは削除と付け替えができず、公開したリリースは変更できない設定にしています。
 
 デモ GIF は `docs/demo.tape` から [VHS](https://github.com/charmbracelet/vhs) で録画しています（手順はファイルの先頭に書いてあります）。
 

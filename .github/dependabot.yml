@@ -1,16 +1,25 @@
+# Supply chain: updates wait out a cooldown after release (most hijacked versions are
+# caught and pulled within days), and major updates come as their own PRs so they get
+# a separate review. Check each PR before merging (README: "依存関係の更新").
 version: 2
 updates:
   - package-ecosystem: gradle
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
     groups:
       gradle:
-        patterns: ['*']
+        update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
     groups:
       actions:
-        patterns: ['*']
+        update-types: [minor, patch]
