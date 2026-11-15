@@ -171,6 +171,9 @@ public final class Repl {
         reader.setVariable(LineReader.INDENTATION, 4);
         reader.setVariable(LineReader.HISTORY_FILE, Path.of(System.getProperty("user.home"), ".dopajshell_history"));
         reader.setVariable(LineReader.HISTORY_SIZE, 1000);
+        // JLine blinks the cursor on the opener for 500ms after ')', ']', '}' and blocks the key
+        // until then; InputFx already highlights the pair, so close brackets should be instant.
+        reader.setVariable(LineReader.BLINK_MATCHING_PAREN, 0L);
         terminal.handle(Terminal.Signal.INT, sig -> {
             if (evaluating) {
                 interrupted = true;
