@@ -66,12 +66,17 @@ public final class DopaLineReader extends LineReaderImpl {
         if (!keys()) return;
         int n = InputFx.STRIP_ROWS;
         Term.write("\r\n".repeat(n) + "\033[" + n + "A");
-        try {
-            Cursor c = getTerminal().getCursorPosition(ignored -> { });
-            if (c != null) promptRow = c.getY();
-        } catch (RuntimeException e) {
-            promptRow = -1;
-        }
+        // Raw mode so the terminal's reply is not echoed (POSIX terminals are still cooked here).
+        // Skip the query when keys are already typed ahead: reading the reply would swallow them.
+        Term.raw(() -> {
+            if (Term.inputPending()) return;
+            try {
+                Cursor c = getTerminal().getCursorPosition(ignored -> { });
+                if (c != null) promptRow = c.getY();
+            } catch (RuntimeException e) {
+                promptRow = -1;
+            }
+        });
         startTicker();
     }
 

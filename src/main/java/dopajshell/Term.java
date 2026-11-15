@@ -211,6 +211,21 @@ public final class Term {
         Terminal t = terminal;
         if (t == null) return false;
         try {
+            // A POSIX tty in canonical (cooked) mode ignores the read timeout, so peek would block
+            // until Enter. Peek in raw mode instead; the key stays queued either way.
+            if (t.getAttributes().getLocalFlag(Attributes.LocalFlag.ICANON)) {
+                boolean[] pending = {false};
+                raw(() -> pending[0] = peek(t));
+                return pending[0];
+            }
+            return peek(t);
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
+    private static boolean peek(Terminal t) {
+        try {
             NonBlockingReader r = t.reader();
             return r.peek(1) >= 0;
         } catch (IOException | RuntimeException e) {
