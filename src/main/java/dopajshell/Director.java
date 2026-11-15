@@ -61,40 +61,45 @@ public final class Director {
         };
     }
 
-    private Scene mega(Scene.Ctx ctx, Event event, String text, int[][] palette, boolean rainbow, String sub) {
-        boolean alt = config.max() && config.motion;
-        if (alt) {
-            Scene.Ctx full = ctx.copy();
-            full.input = null;
-            return new SuccessScenes.Banner(full, event, text, sub, palette, true, rainbow, true);
-        }
-        return new SuccessScenes.Banner(ctx, event, text, sub, palette, true, rainbow, false);
-    }
-
+    /** The scene for the result itself. Banners for what it earned come after it (see bannerFor). */
     private Scene successScene(Event event, Scene.Ctx ctx) {
-        Info info = event.info;
         if (event.flag(Flag.JACKPOT)) return new BonusScenes.Jackpot(ctx, event);
-        if (event.flag(Flag.LEVEL_UP)) return mega(ctx, event, "LEVEL UP!", Color.NEON, true, "LV " + event.level);
-        if (event.flag(Flag.COMEBACK)) {
-            return mega(ctx, event, event.streak >= 2 ? "COMEBACK!" : "FIXED!", Color.GOLD, event.streak >= 2, null);
-        }
-        if (event.flag(Flag.EVAL_MILESTONE)) return mega(ctx, event, Fx.commas(event.evals) + " EVALS", Color.NEON, true, null);
-        if (event.flag(Flag.RECORD_JUMP)) return mega(ctx, event, "NEW RECORD", Color.GOLD, true, numberText(info));
-        if (event.flag(Flag.COMBO_MEGA)) {
-            return mega(ctx, event, "COMBO " + event.combo + "!", Color.FIRE, event.combo >= 50,
-                    event.flag(Flag.FEVER_START) ? "FEVER TIME! ALL POINTS x2" : null);
-        }
-        if (event.flag(Flag.COMBO_BEST)) {
-            return new SuccessScenes.Banner(ctx, event, "BEST COMBO!", "ALL-TIME BEST " + event.combo, Color.FIRE, false, false, false);
-        }
-        if ("definition".equals(info.type)) return new SuccessScenes.Unlock(ctx, event);
-        if (event.flag(Flag.COMBO_MILESTONE) && event.combo >= 5) {
-            return new SuccessScenes.Banner(ctx, event, "COMBO " + event.combo, null, Color.FIRE, false, false, false);
-        }
-        if (event.flag(Flag.FIRST_HIT)) return new SuccessScenes.Banner(ctx, event, "FIRST HIT!", null, Color.ICE, false, false, false);
+        if ("definition".equals(event.info.type)) return new SuccessScenes.Unlock(ctx, event);
         if (event.flag(Flag.CRITICAL) && !counter(event)) return new BonusScenes.Critical(ctx, event);
         if (event.flag(Flag.OUTPUT_RAIN)) return new SuccessScenes.Rain(ctx, event);
         return valueScene(event, ctx);
+    }
+
+    /**
+     * The one banner that follows a success, or null. Bigger moments win; smaller ones are
+     * folded into its subtitle. It plays below the result (never full screen), and LEVEL UP!
+     * stays short because a new profile levels up on almost every early evaluation.
+     */
+    Scene bannerFor(Event event, Scene.Ctx resultCtx) {
+        if (event.kind != Event.Kind.SUCCESS && event.kind != Event.Kind.DEFINITION) return null;
+        Scene.Ctx ctx = resultCtx.copy();
+        ctx.input = null; // the result scene already showed the input
+        ctx.pre = 0;
+        Info info = event.info;
+        if (event.flag(Flag.LEVEL_UP)) return banner(ctx, event, "LEVEL UP!", "LV " + event.level, Color.NEON, false, true);
+        if (event.flag(Flag.COMEBACK)) {
+            boolean big = event.streak >= 2;
+            return banner(ctx, event, big ? "COMEBACK!" : "FIXED!", null, Color.GOLD, big, big);
+        }
+        if (event.flag(Flag.EVAL_MILESTONE)) return banner(ctx, event, Fx.commas(event.evals) + " EVALS", null, Color.NEON, true, true);
+        if (event.flag(Flag.RECORD_JUMP)) return banner(ctx, event, "NEW RECORD", numberText(info), Color.GOLD, true, true);
+        if (event.flag(Flag.COMBO_MEGA)) {
+            return banner(ctx, event, "COMBO " + event.combo + "!", event.flag(Flag.FEVER_START) ? "FEVER TIME! ALL POINTS x2" : null,
+                    Color.FIRE, true, event.combo >= 50);
+        }
+        if (event.flag(Flag.COMBO_BEST)) return banner(ctx, event, "BEST COMBO!", "ALL-TIME BEST " + event.combo, Color.FIRE, false, false);
+        if (event.flag(Flag.COMBO_MILESTONE) && event.combo >= 5) return banner(ctx, event, "COMBO " + event.combo, null, Color.FIRE, false, false);
+        if (event.flag(Flag.FIRST_HIT)) return banner(ctx, event, "FIRST HIT!", null, Color.ICE, false, false);
+        return null;
+    }
+
+    private static Scene banner(Scene.Ctx ctx, Event event, String text, String sub, int[][] palette, boolean mega, boolean rainbow) {
+        return new SuccessScenes.Banner(ctx, event, text, sub, palette, mega, rainbow, false);
     }
 
     private static boolean counter(Event event) {
@@ -119,12 +124,19 @@ public final class Director {
         return String.valueOf(info.floatValue);
     }
 
+    /**
+     * Plays the scene for the result first, then (for a success or a definition) at most one banner for what
+     * the result earned: LEVEL UP!, FIXED!, COMBO 10! and so on. A key press cuts the banner too.
+     */
     public Scene playEvent(Event event, InputShot input, double pre) {
         if (config.off()) return null;
         Scene.Ctx c = ctx(input, pre);
         if (input != null && input.size() + 12 > c.rows) c.input = null;
         Scene scene = sceneFor(event, c).init();
-        play(scene, false);
+        Scene banner = bannerFor(event, c);
+        // One badge line in the scrollback: the banner's, which already sums up the gain.
+        play(scene, false, banner == null);
+        if (banner != null) play(banner.init(), false, true);
         return scene;
     }
 
@@ -143,12 +155,16 @@ public final class Director {
     }
 
     public void play(Scene scene, boolean forceTrail) {
+        play(scene, forceTrail, true);
+    }
+
+    private void play(Scene scene, boolean forceTrail, boolean trail) {
         try {
             boolean animated = config.motion && scene.ctx().w >= 20 && fits(scene);
             if (animated && Term.inputPending()) animated = false;
             if (animated || !config.motion) sound(scene, animated);
             if (animated) run(scene);
-            emitTrail(scene, forceTrail);
+            if (trail) emitTrail(scene, forceTrail);
         } catch (RuntimeException e) {
             // Never let an effect break the REPL.
             Debug.log(e);
