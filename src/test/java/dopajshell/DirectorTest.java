@@ -38,7 +38,8 @@ class DirectorTest {
     }
 
     private static String banner(Scene s) {
-        return s.init().trail();
+        // Rainbow trails color every letter, so compare without the SGR codes.
+        return s.init().trail().replaceAll("\033\\[[\\d;]*m", "");
     }
 
     @Test
