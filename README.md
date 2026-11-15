@@ -20,6 +20,8 @@ Windows では Windows Terminal での利用をおすすめします（24 ビッ
 jbang dopajshell@Shion-Serizawa/dopajshell
 ```
 
+初回は、このリポジトリを信頼するかどうかを JBang が確認します。
+
 `dopajshell` コマンドとしてインストールする場合:
 
 ```console
