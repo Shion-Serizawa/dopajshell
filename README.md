@@ -3,9 +3,7 @@
 キー入力、評価、結果、例外のすべてに派手なターミナル演出がつく JShell です。
 [dopairb](https://github.com/ko1/dopairb)（IRB 版）を Java に移植したもので、JDK 標準の `jdk.jshell` 公開 API と JLine 3 の上に作っています。
 
-<!-- デモ GIF（docs/demo.tape で録画して docs/demo.gif に置いたらコメントを外す）
 ![dopajshell のデモ](docs/demo.gif)
--->
 
 ```
 dopajshell> IntStream.rangeClosed(1, 100).sum()   COMBO 03  SCORE 1,420  [⣿⣿⣀⣀⣀⣀⣀⣀] x1.5
