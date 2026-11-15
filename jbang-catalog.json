@@ -1,0 +1,9 @@
+{
+  "aliases": {
+    "dopajshell": {
+      "script-ref": "https://github.com/Shion-Serizawa/dopajshell/releases/latest/download/dopajshell.jar",
+      "description": "JShell with flashy terminal effects on every keystroke, result and exception",
+      "java": "21+"
+    }
+  }
+}

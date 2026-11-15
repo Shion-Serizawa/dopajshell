@@ -3,6 +3,8 @@ name: Release
 # Push a tag like v0.1.0 (it must match `version` in build.gradle) to publish a release
 # with dopajshell.jar attached. The latest jar is always at
 # https://github.com/<owner>/dopajshell/releases/latest/download/dopajshell.jar
+# Afterwards the Scoop (bucket/) and Homebrew (Formula/) manifests on main are updated
+# with the new version and SHA-256.
 
 on:
   push:
@@ -34,3 +36,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" dopajshell.jar --title "$GITHUB_REF_NAME" --generate-notes
+      - name: Update the Scoop and Homebrew manifests on main
+        run: |
+          sha=$(sha256sum dopajshell.jar | cut -d' ' -f1)
+          git fetch origin main
+          git checkout -B main origin/main
+          sh packaging/update-manifests.sh "${GITHUB_REF_NAME#v}" "$sha"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bucket Formula
+          git diff --cached --quiet || git commit -m "Update Scoop and Homebrew manifests for $GITHUB_REF_NAME"
+          git push origin main

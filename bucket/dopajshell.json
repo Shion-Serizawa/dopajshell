@@ -1,0 +1,19 @@
+{
+    "version": "0.1.0",
+    "description": "JShell with flashy terminal effects on every keystroke, result and exception",
+    "homepage": "https://github.com/Shion-Serizawa/dopajshell",
+    "license": "MIT",
+    "notes": "dopajshell needs a JDK 21 or later on PATH (a JRE is not enough).",
+    "suggest": {
+        "JDK": [
+            "java/temurin-lts-jdk"
+        ]
+    },
+    "url": "https://github.com/Shion-Serizawa/dopajshell/releases/download/v0.1.0/dopajshell.jar",
+    "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "bin": "dopajshell.jar",
+    "checkver": "github",
+    "autoupdate": {
+        "url": "https://github.com/Shion-Serizawa/dopajshell/releases/download/v$version/dopajshell.jar"
+    }
+}
