@@ -1,9 +1,9 @@
 class Dopajshell < Formula
   desc "JShell with flashy terminal effects on every keystroke, result and exception"
   homepage "https://github.com/Shion-Serizawa/dopajshell"
-  url "https://github.com/Shion-Serizawa/dopajshell/releases/download/v0.1.0/dopajshell.jar"
-  version "0.1.0"
-  sha256 "739f025947f844b7545c0d1b8f1b828d406907dbce44190968de160366edafe2"
+  url "https://github.com/Shion-Serizawa/dopajshell/releases/download/v0.1.1/dopajshell.jar"
+  version "0.1.1"
+  sha256 "4bfdef2ad0a2cc4ba2f52af4cba1f66fe97d559be90e77a65acd99fab6136bed"
   license "MIT"
 
   depends_on "openjdk"
