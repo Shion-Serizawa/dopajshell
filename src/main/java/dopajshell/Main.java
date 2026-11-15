@@ -1,6 +1,10 @@
 package dopajshell;
 
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +16,7 @@ public final class Main {
     private Main() {}
 
     public static void main(String[] args) {
+        forceUtf8Stdio();
         Config config = new Config();
         List<String> classPath = new ArrayList<>();
         try {
@@ -72,6 +77,21 @@ public final class Main {
             System.exit(2);
         }
         System.exit(run(config, classPath));
+    }
+
+    /**
+     * Same effect as -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8, so that a bare
+     * `java -jar dopajshell-all.jar` works. JLine reads these properties when it builds the terminal.
+     */
+    private static void forceUtf8Stdio() {
+        if (!"UTF-8".equalsIgnoreCase(System.getProperty("stdout.encoding"))) {
+            System.setProperty("stdout.encoding", "UTF-8");
+            System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out), true, StandardCharsets.UTF_8));
+        }
+        if (!"UTF-8".equalsIgnoreCase(System.getProperty("stderr.encoding"))) {
+            System.setProperty("stderr.encoding", "UTF-8");
+            System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err), true, StandardCharsets.UTF_8));
+        }
     }
 
     private static String need(String val, String[] args, int i, String key) {

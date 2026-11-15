@@ -42,8 +42,9 @@ application {
 }
 
 // One self-contained jar: java -jar build/libs/dopajshell-all.jar
+// The name carries no version so that bin/ launchers keep working across version bumps.
 tasks.register('fatJar', Jar) {
-    archiveClassifier = 'all'
+    archiveFileName = 'dopajshell-all.jar'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes 'Main-Class': 'dopajshell.Main', 'Enable-Native-Access': 'ALL-UNNAMED'

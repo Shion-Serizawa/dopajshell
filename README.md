@@ -18,7 +18,7 @@ JDK は [mise](https://mise.jdx.dev/) で固定しています（`mise.toml`: Co
 
 ```powershell
 mise install                  # 初回のみ: JDK をインストール
-.\gradlew.bat fatJar          # build\libs\dopajshell-0.1.0-all.jar ができる
+.\gradlew.bat fatJar          # build\libs\dopajshell-all.jar ができる
 .\bin\dopajshell.cmd          # 起動
 ```
 
