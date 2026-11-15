@@ -10,7 +10,7 @@ repositories {
     mavenCentral()
 }
 
-def jlineVersion = '3.30.17'
+def jlineVersion = '4.6.0'
 
 dependencies {
     implementation "org.jline:jline-terminal:${jlineVersion}"
@@ -19,7 +19,7 @@ dependencies {
     runtimeOnly "org.jline:jline-terminal-ffm:${jlineVersion}"
     runtimeOnly "org.jline:jline-terminal-jni:${jlineVersion}"
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.1.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
