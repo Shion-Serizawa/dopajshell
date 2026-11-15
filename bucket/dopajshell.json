@@ -10,7 +10,7 @@
         ]
     },
     "url": "https://github.com/Shion-Serizawa/dopajshell/releases/download/v0.1.0/dopajshell.jar",
-    "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "hash": "739f025947f844b7545c0d1b8f1b828d406907dbce44190968de160366edafe2",
     "bin": "dopajshell.jar",
     "checkver": "github",
     "autoupdate": {
