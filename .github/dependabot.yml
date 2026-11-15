@@ -18,8 +18,7 @@ updates:
     schedule:
       interval: monthly
     cooldown:
-      default-days: 7
-      semver-major-days: 14
+      default-days: 14  # semver-*-days are not supported for actions
     groups:
       actions:
         update-types: [minor, patch]

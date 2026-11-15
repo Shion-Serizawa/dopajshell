@@ -199,7 +199,7 @@ JShell をどう組み立て直しているかは [docs/jshell-customization.md]
 
 ### 依存関係の更新
 
-Dependabot が月に 1 回、Gradle の依存関係と GitHub Actions の更新 PR を作ります。公開から 7 日（メジャー更新は 14 日）たっていない版は対象にしません。サプライチェーン攻撃を前提に、マージする前に次を確認します。
+Dependabot が月に 1 回、Gradle の依存関係と GitHub Actions の更新 PR を作ります。Gradle の依存関係は公開から 7 日（メジャー更新は 14 日）、GitHub Actions は 14 日たっていない版を対象にしません。サプライチェーン攻撃を前提に、マージする前に次を確認します。
 
 - **Gradle Wrapper**: `gradle-wrapper.jar` の SHA-256 が `https://services.gradle.org/distributions/gradle-<版>-wrapper.jar.sha256` と一致するか。`gradle-wrapper.properties` には `distributionSha256Sum`（`gradle-<版>-bin.zip.sha256` の値）を入れる。CI でも Wrapper の検証を行っている
 - **ライブラリ**: Maven Central の `.asc` 署名が、今使っている版と同じ鍵で署名されているか（JLine は Guillaume Nodet、JUnit は Marc Philipp の鍵）。公式リポジトリに同じ版のリリースがあるか
