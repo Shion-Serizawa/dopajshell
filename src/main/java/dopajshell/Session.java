@@ -51,14 +51,17 @@ public final class Session {
     }
 
     /** Once per process, right before the first prompt. */
-    public void intro() {
+    public void intro() { intro(true); }
+
+    /** title=false: count the visit but skip the title animation (disguise mode). */
+    public void intro(boolean title) {
         if (introduced || !active()) return;
         introduced = true;
         Profile prof = profile();
         boolean grew = prof.visit();
         if (grew) prof.save();
         if ("sfx".equals(config.sound)) Sound.warmUp(config.duration);
-        director.intro(prof.persistent() ? new SessionScenes.Career(prof.level(), prof.streak, grew && prof.streak >= 2) : null);
+        if (title) director.intro(prof.persistent() ? new SessionScenes.Career(prof.level(), prof.streak, grew && prof.streak >= 2) : null);
     }
 
     public void finish() {

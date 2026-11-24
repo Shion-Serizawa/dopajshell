@@ -408,6 +408,8 @@ public final class Sound {
                 String env = System.getenv("DOPAJSHELL_SOUND");
                 if (env != null && env.equalsIgnoreCase("off")) {
                     ok = false;
+                } else if (logging()) {
+                    ok = true; // recording a timeline instead of playing: no device needed
                 } else {
                     ok = AudioSystem.getMixerInfo().length > 0
                             && AudioSystem.isLineSupported(new DataLine.Info(SourceDataLine.class, FORMAT));
@@ -422,6 +424,31 @@ public final class Sound {
     }
 
     public static boolean fast() { return available(); }
+
+    // ---- timeline log (DOPAJSHELL_SOUND_LOG) ------------------------------
+    //
+    // Instead of playing, append "requestEpoch startEpoch name stretch" per sound, so that a
+    // recording made without an audio device (VHS in Docker) can get the exact same audio
+    // afterwards: see SoundLog.
+
+    private static final String LOG = System.getenv("DOPAJSHELL_SOUND_LOG");
+    private static final long ANCHOR_MILLIS = System.currentTimeMillis();
+    private static final long ANCHOR_NANOS = System.nanoTime();
+
+    /** When the last logged sound would have finished (System.nanoTime). */
+    private static volatile long logEnd;
+
+    static boolean logging() { return LOG != null && !LOG.isEmpty(); }
+
+    private static double epoch(long nanos) { return ANCHOR_MILLIS / 1e3 + (nanos - ANCHOR_NANOS) / 1e9; }
+
+    private static synchronized void log(String name, double stretch, long requestedAt, long start) {
+        try (PrintWriter w = new PrintWriter(new FileWriter(LOG, true))) {
+            w.printf(Locale.ROOT, "%.4f %.4f %s %.4f%n", epoch(requestedAt), epoch(start), name, stretch);
+        } catch (Throwable e) {
+            debug(e);
+        }
+    }
 
     // ---- mixer ----------------------------------------------------------
 
@@ -460,12 +487,12 @@ public final class Sound {
             last.put(name, now);
             Rendered r = CACHE.get(key(name, stretch));
             if (r != null) {
-                enqueue(r, now, delay);
+                enqueue(name, stretch, r, now, delay);
             } else {
                 pending.incrementAndGet();
                 renderer().execute(() -> {
                     try {
-                        enqueue(file(name, stretch), now, delay);
+                        enqueue(name, stretch, file(name, stretch), now, delay);
                     } catch (Throwable e) {
                         debug(e);
                     } finally {
@@ -491,9 +518,14 @@ public final class Sound {
         return renderer;
     }
 
-    private static void enqueue(Rendered r, long requestedAt, double delay) {
+    private static void enqueue(String name, double stretch, Rendered r, long requestedAt, double delay) {
         double offset = delay - r.impact();
         long start = requestedAt + (long) (Math.max(offset, 0) * 1e9);
+        if (logging()) {
+            log(name, stretch, requestedAt, start);
+            logEnd = Math.max(logEnd, start + (long) (r.length() * 1e9));
+            return;
+        }
         synchronized (MIX) {
             if (!ensureMixer()) return;
             while (voices.size() >= MAX_VOICES) voices.remove(0);
@@ -590,6 +622,13 @@ public final class Sound {
     public static void waitIdle(double maxSeconds) {
         long deadline = System.nanoTime() + (long) (maxSeconds * 1e9);
         try {
+            if (logging()) {
+                // nothing is playing, but keep the same pacing as if it were
+                while (pending.get() > 0 && System.nanoTime() < deadline) Thread.sleep(20);
+                long wait = (Math.min(deadline, logEnd) - System.nanoTime()) / 1_000_000;
+                if (wait > 0) Thread.sleep(wait);
+                return;
+            }
             while (System.nanoTime() < deadline) {
                 boolean busy;
                 synchronized (MIX) {

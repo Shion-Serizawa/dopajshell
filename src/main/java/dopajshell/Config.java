@@ -26,6 +26,7 @@ public final class Config {
         DESCRIPTIONS.put("charge", "seconds (max 0.3) of wind-up before a fast result lands; 0 disables");
         DESCRIPTIONS.put("intro", "on / off  -- title animation at startup");
         DESCRIPTIONS.put("keys", "on / off  -- per-keystroke effects while typing");
+        DESCRIPTIONS.put("disguise", "on / off  -- start looking like plain jshell; the show begins with the first snippet");
     }
 
     public volatile String intensity = "max";
@@ -39,6 +40,7 @@ public final class Config {
     public volatile double charge = 0.12;
     public volatile boolean intro = true;
     public volatile boolean keys = true;
+    public volatile boolean disguise = false;
 
     public int level() { return INTENSITIES.indexOf(intensity); }
     public boolean off() { return "off".equals(intensity); }
@@ -62,13 +64,14 @@ public final class Config {
                 Boolean b = boolOrNull(v);
                 sound = b == null ? oneOf(v, SOUNDS, key) : (b ? "sfx" : "off");
             }
-            case "motion", "hud", "intro", "keys" -> {
+            case "motion", "hud", "intro", "keys", "disguise" -> {
                 Boolean b = boolOrNull(v);
                 if (b == null) throw new IllegalArgumentException(key + " expects on/off, got \"" + v + "\"");
                 switch (key) {
                     case "motion" -> motion = b;
                     case "hud" -> hud = b;
                     case "intro" -> intro = b;
+                    case "disguise" -> disguise = b;
                     default -> keys = b;
                 }
             }
@@ -113,6 +116,7 @@ public final class Config {
             case "charge" -> charge;
             case "intro" -> intro;
             case "keys" -> keys;
+            case "disguise" -> disguise;
             default -> null;
         };
     }
