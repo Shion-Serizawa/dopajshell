@@ -17,9 +17,10 @@ import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.NonBlockingReader;
 
 /**
- * Every dependency on JLine internals lives in this class (tested with JLine 3.30).
+ * Every dependency on JLine internals lives in this class (tested with JLine 4.6.0).
  *
- * <p>Protected hooks of LineReaderImpl: {@code getWidget} (before/after comparison of each
+ * <p>Hooks of LineReaderImpl (protected, except the public
+ * {@code getDisplayedBufferWithPrompts}): {@code getWidget} (before/after comparison of each
  * key), {@code getDisplayedBufferWithPrompts} (spark trail after the input and the effect
  * strip below it), {@code redisplay} (the HUD as the right prompt), {@code cleanup} (records
  * how the submitted input looks on screen). A daemon thread calls the public

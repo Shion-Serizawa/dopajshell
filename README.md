@@ -1,7 +1,7 @@
 # dopajshell
 
 キー入力、評価、結果、例外のすべてに派手なターミナル演出がつく JShell です。
-Ruby の IRB 向けに作られた [dopairb](https://github.com/ko1/dopairb) を Java に移植したもので、JDK 標準の `jdk.jshell` 公開 API と JLine 3 の上に作っています。
+Ruby の IRB 向けに作られた [dopairb](https://github.com/ko1/dopairb) を Java に移植したもので、JDK 標準の `jdk.jshell` 公開 API と JLine 4 の上に作っています。
 
 ![dopajshell のデモ](docs/demo.gif)
 
@@ -169,7 +169,7 @@ jshell のおもなコマンドに加えて、演出を調整する `/dopa` が�
 | `DOPAJSHELL_SOUND=off` | 音を無効にする |
 | `DOPAJSHELL_SEED=n` | 確率で決まる要素（クリティカルなど）を再現できるようにする |
 | `DOPAJSHELL_DEBUG=パス` | 演出の中で起きた例外などのログを出す |
-| `DOPAJSHELL_SOUND_LOG=パス` | 音を鳴らす代わりに、いつどの音を鳴らすかを記録する（音声デバイスは不要）。`java -cp dopajshell-all.jar dopajshell.SoundLog` で同じ音の WAV にできる。音ありのデモ動画用（`slides/make-demo.sh`） |
+| `DOPAJSHELL_SOUND_LOG=パス` | 音を鳴らす代わりに、いつどの音を鳴らすかを記録する（音声デバイスは不要）。`java -cp dopajshell-all.jar dopajshell.SoundLog` で同じ音の WAV にできる。音ありのデモ動画用 |
 
 ## 開発する
 

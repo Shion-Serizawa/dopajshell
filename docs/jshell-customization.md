@@ -13,7 +13,7 @@ JDK の `jshell` コマンド（`jdk.internal.jshell.tool`）は内部パッケ�
 | 部品 | 役割 | 由来 |
 | --- | --- | --- |
 | `jdk.jshell.JShell` | Java スニペットの解析・コンパイル・実行（評価エンジン） | JDK 標準の公開 API（`jdk.jshell` モジュール） |
-| `org.jline.reader.LineReader` | 行編集・履歴・補完・ハイライト・端末制御 | JLine 3（jshell ツール自身も内部で使っているもの） |
+| `org.jline.reader.LineReader` | 行編集・履歴・補完・ハイライト・端末制御 | JLine 4（Maven Central 版。jshell ツールが内部で使う JDK 内蔵の JLine とは別物） |
 
 ```mermaid
 flowchart LR
@@ -30,7 +30,7 @@ flowchart LR
         direction TB
         D1["Repl<br/>(ツール部分を自作)"]
         D2["JShell エンジン<br/>(jdk.jshell 公開API)"]
-        D3["DopaLineReader<br/>(JLine 3 を継承)"]
+        D3["DopaLineReader<br/>(JLine 4 を継承)"]
         D1 --> D2
         D1 --> D3
     end
@@ -241,7 +241,7 @@ sequenceDiagram
 ## 5. 行エディタ: `LineReaderImpl` を継承して 4 つのフックを使う
 
 JLine の公開インターフェース（`Highlighter`、`Parser`、`Completer`、ウィジェット）だけでは「キーを押すたびの前後比較」や「入力行の右・下への描き足し」ができません。
-そこで `LineReaderImpl` を継承し、**protected メソッドを 4 つ**オーバーライドしています。JLine 内部への依存は**すべて [DopaLineReader.java](../src/main/java/dopajshell/DopaLineReader.java) 1 ファイルに閉じ込める**方針です（JLine 3.30 で検証）。
+そこで `LineReaderImpl` を継承し、**メソッドを 4 つ**オーバーライドしています（`getDisplayedBufferWithPrompts` だけ public、残りは protected）。JLine 内部への依存は**すべて [DopaLineReader.java](../src/main/java/dopajshell/DopaLineReader.java) 1 ファイルに閉じ込める**方針です（JLine 4.6.0 で検証）。
 
 ```mermaid
 flowchart TB
@@ -512,13 +512,13 @@ flowchart TD
 flowchart LR
     subgraph Build["Gradle"]
         TC["toolchain: JDK 25"] --> REL["options.release = 21<br/>→ JDK 21 以上で実行可"]
-        DEP["jline-terminal / jline-reader 3.30<br/>+ jline-terminal-ffm (JDK 22+)<br/>+ jline-terminal-jni (フォールバック)"]
+        DEP["jline-terminal / jline-reader 4.6.0<br/>+ jline-terminal-ffm (JDK 22+)<br/>+ jline-terminal-jni (フォールバック)"]
         REL & DEP --> FAT["fatJar<br/>依存をすべて 1 つの jar に<br/>Enable-Native-Access: ALL-UNNAMED"]
     end
     FAT --> L["bin/dopajshell(.cmd)<br/>java --enable-native-access=ALL-UNNAMED<br/>-Dstdout.encoding=UTF-8<br/>-Dstderr.encoding=UTF-8 -jar ..."]
 ```
 
-- **JLine は JDK 内蔵版ではなく Maven の JLine 3 を使う。** JDK 内蔵の JLine（`jdk.internal.le`）は内部 API なので、継承やフックができません。
+- **JLine は JDK 内蔵版ではなく Maven の JLine 4 を使う。** JDK 内蔵の JLine（`jdk.internal.le`）は内部 API なので、継承やフックができません。
 - **端末ネイティブアクセス。** Windows コンソールの raw モードやシグナル処理のため、FFM 版（JDK 22+）を優先し、だめなら JNI 版にフォールバックします。そのため `--enable-native-access` を付けています。
 - **`jdk.jshell` はモジュールとして JDK に入っている**ので、追加の依存は不要です（JRE ではなく JDK が必要）。
 
