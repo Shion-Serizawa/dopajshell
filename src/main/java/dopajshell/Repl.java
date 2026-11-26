@@ -80,6 +80,8 @@ public final class Repl {
     private String lastInput;
     private String resumeIntensity;
     private int exitCode = 0;
+    /** Disguise mode: plain jshell banner, prompt and no effects until the first snippet runs. */
+    private volatile boolean disguised;
 
     public Repl(Config config, Terminal terminal, boolean interactive, List<String> classPath) {
         this.config = config;
@@ -162,8 +164,10 @@ public final class Repl {
         boot();
         if (!interactive) return runPlain();
         InputFx fx = session.fx;
-        highlighter = new DopaHighlighter(fx, session::active, () -> Term.depth(config) != Color.Depth.NONE);
-        reader = new DopaLineReader(terminal, fx, session::active, highlighter);
+        disguised = config.disguise;
+        java.util.function.BooleanSupplier live = () -> session.active() && !disguised;
+        highlighter = new DopaHighlighter(fx, live, () -> !disguised && Term.depth(config) != Color.Depth.NONE);
+        reader = new DopaLineReader(terminal, fx, live, highlighter);
         reader.setParser(new JParser());
         reader.setCompleter(new JCompleter());
         reader.setSecondaryPrompt(SECONDARY);
@@ -188,16 +192,23 @@ public final class Repl {
             }
         });
 
-        session.intro();
-        if (!booting.isDone()) say(Color.fg(Color.rgb(150, 150, 165), Term.depth(config)) + "|  starting JShell..." + Color.RESET);
+        session.intro(!disguised);
+        if (!disguised && !booting.isDone()) say(Color.fg(Color.rgb(150, 150, 165), Term.depth(config)) + "|  starting JShell..." + Color.RESET);
         try {
             js();
         } catch (IllegalStateException e) {
             say("|  " + e.getMessage());
             return 1;
         }
-        say(Color.fg(Color.rgb(150, 150, 165), Term.depth(config)) + "|  Welcome to dopajshell -- JShell with fireworks. /help for commands, /dopa for effects."
-                + Color.RESET);
+        if (disguised) {
+            // Exactly what jshell itself prints.
+            say("|  Welcome to JShell -- Version " + System.getProperty("java.version"));
+            say("|  For an introduction type: /help intro");
+            say("");
+        } else {
+            say(Color.fg(Color.rgb(150, 150, 165), Term.depth(config)) + "|  Welcome to dopajshell -- JShell with fireworks. /help for commands, /dopa for effects."
+                    + Color.RESET);
+        }
 
         while (true) {
             String line;
@@ -224,6 +235,7 @@ public final class Repl {
     }
 
     private String prompt() {
+        if (disguised) return "jshell> ";
         if (Term.depth(config) == Color.Depth.NONE) return PROMPT_TEXT;
         return "\033[1;38;2;255;110;230mdopa\033[0;1mjshell\033[0m> ";
     }
@@ -330,6 +342,7 @@ public final class Repl {
 
     /** Evaluate one snippet with the show around it. False when the engine died. */
     private boolean evalSnippet(String src, String input, int srcOffset, InputShot shot) {
+        disguised = false; // the first snippet is the reveal
         boolean show = session.active();
         if (show) OutputTap.start();
         ChargeLine charge = show && config.motion ? new ChargeLine(config).start() : null;
@@ -723,6 +736,7 @@ public final class Repl {
         out.println("  --[no-]hud             COMBO / SCORE next to the prompt (default on)");
         out.println("  --[no-]keys            per-keystroke effects (default on)");
         out.println("  --[no-]intro           title animation (default on)");
+        out.println("  --[no-]disguise        look like plain jshell until the first snippet (default off)");
         out.println("  --duration=X           effect length multiplier");
         out.println("  --set=K=V,...          any setting, same format as $DOPAJSHELL");
         out.println("  --class-path PATH      add to the class path (also -cp)");

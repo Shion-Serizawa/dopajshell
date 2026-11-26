@@ -104,6 +104,7 @@ jshell のおもなコマンドに加えて、演出を調整する `/dopa` が�
 | `charge` | 秒数（**0.12**、最大 0.3） | すぐ終わる評価の結果を出す前の「溜め」の長さ。0 で無効 |
 | `intro` | **on** / off | 起動時のタイトル演出 |
 | `keys` | **on** / off | 入力中のキーごとの演出 |
+| `disguise` | on / **off** | 起動時は普通の jshell と同じバナーと `jshell>` プロンプトで始まり、最初のスニペットを評価した瞬間から演出が始まる（`alias jshell='dopajshell --disguise'` 向け） |
 
 ## ゲームの仕組み
 
@@ -168,6 +169,7 @@ jshell のおもなコマンドに加えて、演出を調整する `/dopa` が�
 | `DOPAJSHELL_SOUND=off` | 音を無効にする |
 | `DOPAJSHELL_SEED=n` | 確率で決まる要素（クリティカルなど）を再現できるようにする |
 | `DOPAJSHELL_DEBUG=パス` | 演出の中で起きた例外などのログを出す |
+| `DOPAJSHELL_SOUND_LOG=パス` | 音を鳴らす代わりに、いつどの音を鳴らすかを記録する（音声デバイスは不要）。`java -cp dopajshell-all.jar dopajshell.SoundLog` で同じ音の WAV にできる。音ありのデモ動画用（`slides/make-demo.sh`） |
 
 ## 開発する
 

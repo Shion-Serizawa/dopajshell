@@ -1,8 +1,11 @@
 package dopajshell;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jline.reader.Reference;
 import org.jline.reader.Widget;
@@ -11,6 +14,7 @@ import org.jline.terminal.Cursor;
 import org.jline.terminal.Terminal;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStringBuilder;
+import org.jline.utils.NonBlockingReader;
 
 /**
  * Every dependency on JLine internals lives in this class (tested with JLine 3.30).
@@ -23,6 +27,8 @@ import org.jline.utils.AttributedStringBuilder;
  */
 public final class DopaLineReader extends LineReaderImpl {
     static final double TICK = 1 / 30.0;
+    static final long CURSOR_TIMEOUT_MS = 300;
+    private static final Pattern CPR = Pattern.compile("\033\\[(\\d+);(\\d+)R");
 
     private final InputFx fx;
     private final BooleanSupplier active;
@@ -71,7 +77,7 @@ public final class DopaLineReader extends LineReaderImpl {
         Term.raw(() -> {
             if (Term.inputPending()) return;
             try {
-                Cursor c = getTerminal().getCursorPosition(ignored -> { });
+                Cursor c = cursorPosition(getTerminal(), CURSOR_TIMEOUT_MS);
                 if (c != null) promptRow = c.getY();
             } catch (RuntimeException e) {
                 promptRow = -1;
@@ -274,5 +280,34 @@ public final class DopaLineReader extends LineReaderImpl {
         int screenRows = size.getRows() > 0 ? size.getRows() : Term.rows();
         int lastRow = promptRow + inputRows() - 1;
         return screenRows - 1 - lastRow >= InputFx.STRIP_ROWS;
+    }
+
+    /**
+     * The cursor position (0-based), or null when the terminal does not answer in time.
+     *
+     * <p>Not {@code Terminal.getCursorPosition}: that reads without a timeout, and when the
+     * non-blocking reader's pump thread has just been woken by a peek (Term.inputPending) it
+     * can take the reply while this thread blocks on the raw stream, holding the reader's
+     * lock: the prompt never comes back. Timed reads always go through the pump thread.
+     */
+    static Cursor cursorPosition(Terminal t, long timeoutMs) {
+        Term.write("\033[6n");
+        NonBlockingReader r = t.reader();
+        StringBuilder sb = new StringBuilder();
+        long deadline = System.nanoTime() + timeoutMs * 1_000_000L;
+        try {
+            while (sb.length() < 32) {
+                long left = (deadline - System.nanoTime()) / 1_000_000L;
+                if (left <= 0) return null;
+                int ch = r.read(left);
+                if (ch < 0) return null; // timeout or EOF
+                sb.append((char) ch);
+                Matcher m = CPR.matcher(sb);
+                if (m.find()) return new Cursor(Integer.parseInt(m.group(2)) - 1, Integer.parseInt(m.group(1)) - 1);
+            }
+        } catch (IOException | RuntimeException e) {
+            Debug.log(e);
+        }
+        return null;
     }
 }

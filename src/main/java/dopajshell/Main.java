@@ -62,6 +62,8 @@ public final class Main {
                     case "--no-keys" -> config.set("keys", "off");
                     case "--intro" -> config.set("intro", "on");
                     case "--no-intro" -> config.set("intro", "off");
+                    case "--disguise" -> config.set("disguise", "on");
+                    case "--no-disguise" -> config.set("disguise", "off");
                     case "--duration" -> config.set("duration", need(val, args, ++i, key));
                     case "--set" -> config.applyString(need(val, args, ++i, key));
                     case "--class-path", "-cp", "-classpath", "--classpath" -> {
